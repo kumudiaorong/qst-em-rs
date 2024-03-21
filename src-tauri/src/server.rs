@@ -24,10 +24,8 @@ impl Server {
         Ok(Server { config, fuzzy })
     }
     pub fn get_headers(&self, kw: String) -> Extheaders {
-        println!("searching for {}", kw);
         match self.fuzzy.search_prefix(kw) {
             Some(list) => {
-                println!("found {:?}", list);
                 list.into_iter()
                     .map(|id| Extheader {
                         id: id.clone(),
