@@ -9,9 +9,12 @@ use server::Extheaders;
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
 #[tauri::command]
-async fn get_headers(state: tauri::State<'_, Mutex<server::Server>>) -> Result<Extheaders, String> {
+async fn get_headers(
+    kw: String,
+    state: tauri::State<'_, Mutex<server::Server>>,
+) -> Result<Extheaders, String> {
     let binding = state.lock().await;
-    let info = binding.get_headers();
+    let info = binding.get_headers(kw);
     Ok(info)
 }
 #[tauri::command]
@@ -48,7 +51,7 @@ async fn del_ext(id: String, state: tauri::State<'_, Mutex<server::Server>>) -> 
 }
 fn main() {
     tauri::Builder::default()
-        .manage(Mutex::new(server::init().unwrap()))
+        .manage(Mutex::new(server::Server::new().unwrap()))
         .invoke_handler(tauri::generate_handler![
             get_headers,
             get_ext,

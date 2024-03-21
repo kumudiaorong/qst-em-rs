@@ -77,7 +77,7 @@ type ExtHeader = {
 }
 var headers = ref<ExtHeader[]>([])
 onMounted(async () => {
-    let res = await invoke('get_headers');
+    let res = await invoke('get_headers', {kw: ''})
     if (errorAssert(res)) {
         headers.value = res as ExtHeader[]
     }
@@ -133,6 +133,14 @@ watch(() => ext.value, (newVal) => {
     }
     switch_flag.value = false
 }, { deep: true })
+
+watch(() => input.value, (newVal) => {
+    invoke('get_headers', { kw: newVal }).then((res) => {
+        if (errorAssert(res)) {
+            headers.value = res as ExtHeader[]
+        }
+    })
+})
 
 const newExt = () => {
     headers.value.push({ id: 'new', name: '' })

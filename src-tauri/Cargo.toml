@@ -20,7 +20,7 @@ xcfg-rs = { version = "0.2.2" }
 dirs = "5.0.1"
 xlog-rs = { version = "0.3.1" }
 uuid = { version = "1.7.0", features = ["v4", "fast-rng", "macro-diagnostics"] }
-
+xsl = { version = "0.1.1" }
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

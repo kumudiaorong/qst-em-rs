@@ -3,7 +3,8 @@ use crate::config;
 use config::Config;
 use config::ExtInfo;
 pub struct Server {
-    pub config: Config,
+    config: Config,
+    fuzzy: xsl::collections::FuzzyFinder<String>,
 }
 #[derive(serde::Serialize)]
 pub struct Extheader {
@@ -14,16 +15,28 @@ pub struct Extheader {
 pub type Extheaders = Vec<Extheader>;
 
 impl Server {
-    pub fn get_headers(&self) -> Extheaders {
-        self.config
-            .inner
-            .exts
-            .iter()
-            .map(|(id, ext)| Extheader {
-                id: id.clone(),
-                name: ext.name.clone(),
-            })
-            .collect()
+    pub fn new() -> Result<Server, xcfg::Error> {
+        let config = config::init()?;
+        let mut fuzzy = xsl::collections::FuzzyFinder::new(usize::MAX, true);
+        for (id, ext) in config.inner.exts.iter() {
+            fuzzy.insert(ext.name.clone(),id.clone());
+        }
+        Ok(Server { config, fuzzy })
+    }
+    pub fn get_headers(&self, kw: String) -> Extheaders {
+        println!("searching for {}", kw);
+        match self.fuzzy.search_prefix(kw) {
+            Some(list) => {
+                println!("found {:?}", list);
+                list.into_iter()
+                    .map(|id| Extheader {
+                        id: id.clone(),
+                        name: self.config.inner.exts[id].name.clone(),
+                    })
+                    .collect()
+            }
+            None => Extheaders::new(),
+        }
     }
     pub fn get_ext(&self, id: &str) -> Option<&ExtInfo> {
         self.config.inner.exts.get(id)
@@ -44,10 +57,4 @@ impl Server {
         self.config.save().map_err(|e| e.message)?;
         Ok(())
     }
-}
-pub fn init() -> Result<Server, xcfg::Error> {
-    let server = Server {
-        config: config::init()?,
-    };
-    Ok(server)
 }
